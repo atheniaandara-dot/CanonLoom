@@ -1,0 +1,326 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CanonLoom project v1",
+  "description": "Portable, explicit canon and chronological scene events. UTF-8 JSON.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "title",
+    "entities",
+    "facts",
+    "rules",
+    "scenes"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 20000
+    },
+    "entities": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "type": {
+            "enum": [
+              "character",
+              "location",
+              "item",
+              "world"
+            ]
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 20000
+          }
+        }
+      }
+    },
+    "facts": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "entity",
+          "field",
+          "value"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+          },
+          "entity": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+          },
+          "field": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9_.:-]{0,119}$"
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ],
+            "maxLength": 4000
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "locked": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "entity",
+          "field",
+          "operator",
+          "value",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+          },
+          "entity": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+          },
+          "field": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9_.:-]{0,119}$"
+          },
+          "operator": {
+            "enum": [
+              "equals",
+              "notEquals"
+            ]
+          },
+          "value": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ],
+            "maxLength": 4000
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "order",
+          "status",
+          "events"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "order": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "time": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "canon"
+            ]
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "events": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "kind",
+                    "entity",
+                    "field",
+                    "value"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+                    },
+                    "kind": {
+                      "const": "assert"
+                    },
+                    "entity": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+                    },
+                    "field": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-zA-Z0-9_.:-]{0,119}$"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean",
+                        "null"
+                      ],
+                      "maxLength": 4000
+                    },
+                    "reason": {
+                      "type": "string",
+                      "maxLength": 20000
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "kind",
+                    "entity",
+                    "field",
+                    "value"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+                    },
+                    "kind": {
+                      "const": "set"
+                    },
+                    "entity": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+                    },
+                    "field": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-zA-Z0-9_.:-]{0,119}$"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean",
+                        "null"
+                      ],
+                      "maxLength": 4000
+                    },
+                    "reason": {
+                      "type": "string",
+                      "maxLength": 20000
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "kind",
+                    "entity",
+                    "field"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+                    },
+                    "kind": {
+                      "const": "unset"
+                    },
+                    "entity": {
+                      "type": "string",
+                      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
+                    },
+                    "field": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-zA-Z0-9_.:-]{0,119}$"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "maxLength": 20000
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

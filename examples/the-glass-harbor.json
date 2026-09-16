@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "title": "The Glass Harbor",
+  "description": "An original demonstration story. A courier, a watch captain, and a secret beneath the tide. The second scene deliberately contains three continuity errors.",
+  "entities": [
+    {
+      "id": "mira",
+      "name": "Mira Vale",
+      "type": "character",
+      "notes": "A patient courier with a stubborn streak. Age 28. She notices what people avoid saying."
+    },
+    {
+      "id": "soren",
+      "name": "Soren Ash",
+      "type": "character",
+      "notes": "Harbor watch captain, age 36. His duty and his loyalty to Mira do not always agree."
+    },
+    {
+      "id": "quay",
+      "name": "Lower Quay",
+      "type": "location",
+      "notes": "Rain-dark steps beside the harbor. The archive is a twenty-minute walk away."
+    },
+    {
+      "id": "archive",
+      "name": "Tidal Archive",
+      "type": "location",
+      "notes": "A stone archive above the flood line."
+    },
+    {
+      "id": "lantern",
+      "name": "Brass lantern",
+      "type": "item",
+      "notes": "One lantern with a cracked blue lens."
+    },
+    {
+      "id": "world",
+      "name": "Harbor laws",
+      "type": "world",
+      "notes": "Magic has limits, even when the tide does not."
+    }
+  ],
+  "facts": [
+    {
+      "id": "f1",
+      "entity": "mira",
+      "field": "location",
+      "value": "quay",
+      "source": "Opening: Mira waits on the quay."
+    },
+    {
+      "id": "f2",
+      "entity": "mira",
+      "field": "clothing",
+      "value": "blue waxed coat",
+      "source": "Opening wardrobe"
+    },
+    {
+      "id": "f3",
+      "entity": "mira",
+      "field": "injury:left-wrist",
+      "value": "bandaged",
+      "source": "The warehouse accident, yesterday"
+    },
+    {
+      "id": "f4",
+      "entity": "mira",
+      "field": "emotion",
+      "value": "wary",
+      "source": "Opening scene"
+    },
+    {
+      "id": "f5",
+      "entity": "mira",
+      "field": "knows:sealed-route",
+      "value": false,
+      "source": "Only Soren knows the route."
+    },
+    {
+      "id": "f6",
+      "entity": "mira",
+      "field": "relationship:soren",
+      "value": "uneasy allies",
+      "source": "Their last conversation"
+    },
+    {
+      "id": "f7",
+      "entity": "mira",
+      "field": "address:soren",
+      "value": "Captain",
+      "source": "Formal address"
+    },
+    { "id": "f8", "entity": "mira", "field": "alive", "value": true, "source": "Opening" },
+    { "id": "f9", "entity": "soren", "field": "location", "value": "quay", "source": "Opening" },
+    {
+      "id": "f10",
+      "entity": "soren",
+      "field": "knows:sealed-route",
+      "value": true,
+      "source": "Watch captain's briefing"
+    },
+    {
+      "id": "f11",
+      "entity": "lantern",
+      "field": "holder",
+      "value": "soren",
+      "source": "Watch equipment"
+    },
+    {
+      "id": "f12",
+      "entity": "world",
+      "field": "resurrection",
+      "value": false,
+      "source": "Magic cannot restore the dead.",
+      "locked": true
+    }
+  ],
+  "rules": [
+    {
+      "id": "r1",
+      "entity": "world",
+      "field": "resurrection",
+      "operator": "equals",
+      "value": false,
+      "description": "Magic cannot restore the dead."
+    }
+  ],
+  "scenes": [
+    {
+      "id": "crossing",
+      "title": "A light for the crossing",
+      "order": 1,
+      "time": 0,
+      "status": "canon",
+      "summary": "Soren sets the brass lantern between them. Mira takes it with her uninjured hand. Neither mentions the sealed route.",
+      "events": [
+        { "id": "e1", "kind": "assert", "entity": "mira", "field": "location", "value": "quay" },
+        {
+          "id": "e2",
+          "kind": "set",
+          "entity": "lantern",
+          "field": "holder",
+          "value": "mira",
+          "reason": "Soren hands the lantern to Mira."
+        },
+        {
+          "id": "e3",
+          "kind": "set",
+          "entity": "mira",
+          "field": "emotion",
+          "value": "determined",
+          "reason": "She accepts the crossing despite her fear."
+        }
+      ]
+    },
+    {
+      "id": "sealed-archive",
+      "title": "The sealed archive",
+      "order": 2,
+      "time": 20,
+      "status": "draft",
+      "summary": "This deliberately flawed draft places Mira in the archive without recording the journey, gives her a healed wrist, and lets her know the secret route.",
+      "events": [
+        { "id": "e1", "kind": "assert", "entity": "mira", "field": "location", "value": "archive" },
+        {
+          "id": "e2",
+          "kind": "assert",
+          "entity": "mira",
+          "field": "injury:left-wrist",
+          "value": "healed"
+        },
+        {
+          "id": "e3",
+          "kind": "assert",
+          "entity": "mira",
+          "field": "knows:sealed-route",
+          "value": true
+        },
+        { "id": "e4", "kind": "assert", "entity": "lantern", "field": "holder", "value": "mira" }
+      ]
+    }
+  ]
+}

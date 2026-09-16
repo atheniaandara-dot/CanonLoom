@@ -1,0 +1,21 @@
+name: Feature request
+description: Describe a writing problem and the behavior that would help.
+title: '[Feature]: '
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What writing problem are you trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include a small example and explain how you handle this today.
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Alternatives, privacy, or compatibility considerations

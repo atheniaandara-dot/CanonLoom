@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a reproducible problem without sharing private writing.
+title: '[Bug]: '
+body:
+  - type: input
+    id: version
+    attributes:
+      label: CanonLoom version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / operating system or Node version
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Use a small fictional example. Do not upload private manuscripts or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and diagnostic code
+    validations:
+      required: true

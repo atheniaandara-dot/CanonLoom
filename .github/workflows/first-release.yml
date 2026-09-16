@@ -1,0 +1,36 @@
+name: First release
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: first-release-v0.1.0
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'atheniaandara-dot/CanonLoom' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm run release:pack
+      - name: Publish the first verified preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/first-release.mjs

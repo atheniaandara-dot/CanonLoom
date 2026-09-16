@@ -1,0 +1,48 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Verify tag matches package version
+        run: node --input-type=module -e 'import fs from "node:fs"; const v=JSON.parse(fs.readFileSync("package.json")).version; if(process.env.GITHUB_REF_NAME!=="v"+v) process.exit(1);'
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run check
+      - run: npm run format:check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: npm run release:pack
+      - name: Publish verified preview assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" release/* --verify-tag --title "CanonLoom $RELEASE_TAG" --notes-file "docs/releases/$RELEASE_TAG.md" --prerelease
