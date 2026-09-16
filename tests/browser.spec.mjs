@@ -58,3 +58,39 @@ test('invalid imported JSON preserves the active workspace', async ({ page }) =>
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(page.locator('.story-label')).toContainText('The Glass Harbor');
 });
+
+test('search finds canon and complete scenes without changing the continuity report', async ({
+  page,
+}) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await page.locator('nav [data-view="bible"]').click();
+  const facts = page.getByRole('searchbox', { name: 'Search names, notes, or facts' });
+  await facts.pressSequentially('blue waxed coat');
+  await expect(facts).toBeFocused();
+  await expect(page.locator('.facts tbody tr')).toHaveCount(1);
+  await expect(page.locator('.entity-card h2')).toHaveText('Mira Vale');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
+    true,
+  );
+  await page.getByRole('button', { name: 'Clear search', exact: true }).click();
+  await expect(facts).toHaveValue('');
+  await page.locator('nav [data-view="scenes"]').click();
+  const scenes = page.getByRole('searchbox', { name: 'Search scenes and events' });
+  await scenes.fill('despite her fear');
+  await expect(page.locator('.scene-panel')).toHaveCount(1);
+  await expect(page.locator('.scene-panel .event-row')).toHaveCount(3);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(
+    true,
+  );
+  await scenes.fill('no matching scene');
+  await expect(page.getByText('No matching scenes. Try another search.')).toBeVisible();
+  await page.locator('nav [data-view="overview"]').click();
+  await page.locator('[data-action="open-scene"][data-id="sealed-archive"]').click();
+  await expect(scenes).toHaveValue('');
+  await expect(page.locator('.scene-panel')).toHaveCount(2);
+  await page.locator('nav [data-view="checks"]').click();
+  await expect(page.locator('article.issue')).toHaveCount(3);
+  expect(errors).toEqual([]);
+});

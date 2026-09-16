@@ -8,7 +8,7 @@ Track who a character is, where they are, what they wear, what they know, and wh
 
 ## Try it without coding
 
-Download `CanonLoom-0.1.0.html` from [GitHub Releases](https://github.com/atheniaandara-dot/CanonLoom/releases), when published, and open it in a modern desktop browser. It is a self-contained application; it does not need an installation or an internet connection. Some mobile file viewers do not execute HTML apps: use a hosted copy in your normal browser instead. See [the user guide](docs/USER_GUIDE.md).
+Download `CanonLoom-0.1.0.html` from [the v0.1.0 release](https://github.com/atheniaandara-dot/CanonLoom/releases/tag/v0.1.0) and open it in a modern desktop browser. It is a self-contained application; it does not need an installation or an internet connection. Some mobile file viewers do not execute HTML apps: use a hosted copy in your normal browser instead. See [the user guide](docs/USER_GUIDE.md).
 
 The included **The Glass Harbor** example deliberately has three errors. Choose **Check report** to inspect them. Choose **New story** to start your own project. Use **Export backup** to download a portable JSON copy of your work.
 
@@ -29,6 +29,8 @@ The application stores one workspace in your current browser. Storage is not an 
 | AI handoff                         | Markdown context for a director or one character                   |
 
 It also includes a JSON Schema, a reusable JavaScript library, a CLI, example projects, automated tests, and GitHub workflows for tests, releases, and optional Pages hosting.
+
+**On `main` (not yet in the v0.1.0 download):** search recorded facts by value, source, or named reference, and find scenes by their events. See [finding recorded details](docs/USER_GUIDE.md#find-recorded-details-unreleased). Search only filters the display; continuity checks still use the entire story.
 
 ## The important distinction
 

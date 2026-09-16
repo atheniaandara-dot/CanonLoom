@@ -55,7 +55,17 @@ const dictionary = {
   'Add rule': 'Tambah aturan',
   'Opening canon': 'Canon awal',
   'Current canon': 'Canon terkini',
-  'Search names or notes': 'Cari nama atau catatan',
+  'Search names, notes, or facts': 'Cari nama, catatan, atau fakta',
+  'Search scenes and events': 'Cari adegan dan catatan kejadian',
+  'Clear search': 'Hapus pencarian',
+  'Matching entities': 'Entitas yang cocok',
+  'Matching scenes': 'Adegan yang cocok',
+  'No matching entities. Clear the search or change the type filter.':
+    'Tidak ada entitas yang cocok. Hapus pencarian atau ubah filter jenis.',
+  'No matching facts.': 'Tidak ada fakta yang cocok.',
+  'No matching scenes. Try another search.': 'Tidak ada adegan yang cocok. Coba pencarian lain.',
+  'Matching scenes show every event in story order. Search does not change canon.':
+    'Adegan yang cocok menampilkan semua catatan sesuai urutan cerita. Pencarian tidak mengubah canon.',
   'All types': 'Semua jenis',
   Character: 'Karakter',
   Location: 'Lokasi',
@@ -234,6 +244,7 @@ let notice = loaded.error || '';
 let unsaved = !!loaded.error;
 let view = 'overview';
 let query = '';
+let sceneQuery = '';
 let entityFilter = '';
 let severity = '';
 let currentFacts = false;
@@ -338,13 +349,51 @@ function overview(report) {
     `<div class="stats"><div class="stat"><strong>${project.entities.length}</strong><span>${esc(t('Tracked entities'))}</span></div><div class="stat"><strong>${report.stats.committedScenes}</strong><span>${esc(t('Committed scenes'))}</span></div><div class="stat ${report.stats.errors ? 'error' : ''}"><strong>${report.stats.errors.toString().padStart(2, '0')}</strong><span>${esc(t('Continuity errors'))}</span></div></div><div class="two-col"><section class="panel"><div class="panel-head"><h2>${esc(t('The story so far'))}</h2>${button('View scenes', 'nav', 'data-view="scenes"', 'small quiet')}</div>${report.scenes.length ? report.scenes.map((scene, i) => `<div class="scene-row"><div class="scene-index">${String(i + 1).padStart(2, '0')}</div><div class="scene-body"><h3>${esc(scene.title)}</h3><p>${esc(project.scenes.find((s) => s.id === scene.id).summary || '')}</p>${badge(scene)}</div>${button('Open', 'open-scene', `data-id="${esc(scene.id)}"`, 'small quiet')}</div>`).join('') : `<div class="empty">${esc(t('No scenes yet. Add your first scene to begin.'))}</div>`}<p class="note">${esc(t('Draft scenes are isolated. Once you resolve errors and mark a scene as canon, its changes become available to later scenes. Warnings do not block changes.'))}</p></section><section class="panel"><div class="panel-head"><h2>${esc(t('Needs your attention'))}</h2>${button('Full report', 'nav', 'data-view="checks"', 'small quiet')}</div>${report.issues.slice(0, 3).map(issueCard).join('') || `<div class="empty">${esc(t('No issues found in recorded facts.'))}</div>`}</section></div>`
   );
 }
+const searchText = (value) => String(value).normalize('NFC').toLowerCase();
+const containsSearch = (needle, ...values) =>
+  !needle || values.some((value) => searchText(value ?? '').includes(needle));
+function recordMatches(record, needle) {
+  return containsSearch(
+    needle,
+    record.entity,
+    entityName(record.entity),
+    record.field,
+    fieldName(record.field),
+    record.value === undefined ? '' : String(record.value),
+    readableValue(record.field, record.value),
+    record.source,
+    record.reason,
+  );
+}
+function resetSearch() {
+  query = '';
+  sceneQuery = '';
+  entityFilter = '';
+}
+function searchControl(id, label, value) {
+  return `<label class="sr-only" for="${id}">${esc(t(label))}</label><input id="${id}" type="search" placeholder="${esc(t(label))}" value="${esc(value)}">${value ? button('Clear search', 'clear-search', `data-target="${id}"`, 'quiet') : ''}`;
+}
 function bible(report) {
   const facts = currentFacts ? report.facts : project.facts;
+  const needle = searchText(query.trim());
+  const factsByEntity = new Map(project.entities.map((entity) => [entity.id, []]));
+  for (const fact of facts) factsByEntity.get(fact.entity).push(fact);
+  const namedMatches = new Set(
+    project.entities
+      .filter((entity) => containsSearch(needle, entity.id, entity.name, entity.notes))
+      .map((entity) => entity.id),
+  );
+  const matchingFacts = facts.filter(
+    (fact) => namedMatches.has(fact.entity) || recordMatches(fact, needle),
+  );
+  const matchingEntityIds = new Set(matchingFacts.map((fact) => fact.entity));
   const entities = project.entities.filter(
     (entity) =>
       (!entityFilter || entity.type === entityFilter) &&
-      `${entity.name} ${entity.notes || ''}`.toLowerCase().includes(query.toLowerCase()),
+      (namedMatches.has(entity.id) || matchingEntityIds.has(entity.id)),
   );
+  const visibleIds = new Set(entities.map((entity) => entity.id));
+  const visibleFacts = matchingFacts.filter((fact) => visibleIds.has(fact.entity));
   return (
     heading(
       'Your workspace',
@@ -352,12 +401,13 @@ function bible(report) {
       'Opening canon',
       `<div class="actions">${button('Add entity', 'edit-entity', '', 'primary')}</div>`,
     ) +
-    `<div class="filters"><label class="sr-only" for="search">${esc(t('Search names or notes'))}</label><input id="search" placeholder="${esc(t('Search names or notes'))}" value="${esc(query)}"><label class="sr-only" for="entity-filter">${esc(t('Type'))}</label><select id="entity-filter">${option('', t('All types'), entityFilter)}${['character', 'location', 'item', 'world'].map((type) => option(type, t(type[0].toUpperCase() + type.slice(1)), entityFilter)).join('')}</select><label class="check-label"><input id="current-facts" type="checkbox" ${currentFacts ? 'checked' : ''}>${esc(t('Current canon'))}</label></div><div class="cards">${
+    `<div class="filters">${searchControl('search', 'Search names, notes, or facts', query)}<label class="sr-only" for="entity-filter">${esc(t('Type'))}</label><select id="entity-filter">${option('', t('All types'), entityFilter)}${['character', 'location', 'item', 'world'].map((type) => option(type, t(type[0].toUpperCase() + type.slice(1)), entityFilter)).join('')}</select><label class="check-label"><input id="current-facts" type="checkbox" ${currentFacts ? 'checked' : ''}>${esc(t('Current canon'))}</label></div><p class="note" role="status">${esc(t('Matching entities'))}: ${entities.length} / ${project.entities.length}</p><div class="cards">${
       entities
         .map(
           (entity) =>
-            `<article class="panel entity-card"><div class="avatar">${esc(entity.name.slice(0, 1))}</div><small class="eyebrow">${esc(t(entity.type[0].toUpperCase() + entity.type.slice(1)))}</small><h2>${esc(entity.name)}</h2><p>${esc(entity.notes || t('No notes.'))}</p><dl>${facts
-              .filter((fact) => fact.entity === entity.id)
+            `<article class="panel entity-card"><div class="avatar">${esc(entity.name.slice(0, 1))}</div><small class="eyebrow">${esc(t(entity.type[0].toUpperCase() + entity.type.slice(1)))}</small><h2>${esc(entity.name)}</h2><p>${esc(entity.notes || t('No notes.'))}</p><dl>${factsByEntity
+              .get(entity.id)
+              .filter((fact) => namedMatches.has(entity.id) || recordMatches(fact, needle))
               .slice(0, 5)
               .map(
                 (fact) =>
@@ -368,11 +418,20 @@ function bible(report) {
               )}</dl><div class="actions">${button('Edit', 'edit-entity', `data-id="${esc(entity.id)}"`, 'small')}${button('Delete', 'delete', `data-kind="entities" data-id="${esc(entity.id)}"`, 'small quiet danger')}${button('Add opening fact', 'edit-fact', `data-entity="${esc(entity.id)}"`, 'small quiet')}</div></article>`,
         )
         .join('') ||
-      `<div class="empty">${esc(t('No entities yet. Add a character, location, item, or world.'))}</div>`
-    }</div><section class="panel section-gap"><div class="panel-head"><h2>${esc(t(currentFacts ? 'Current canon' : 'Opening facts'))}</h2>${button('Add opening fact', 'edit-fact', '', 'small')}</div><div class="table-scroll"><table class="facts"><thead><tr><th>${esc(t('Entity'))}</th><th>${esc(t('Attribute'))}</th><th>${esc(t('Value'))}</th><th>${esc(t('Actions'))}</th></tr></thead><tbody>${facts.map((fact) => `<tr><td>${esc(entityName(fact.entity))}</td><td>${esc(fieldName(fact.field))}${fact.locked ? ` <span class="badge">${esc(t('Locked'))}</span>` : ''}</td><td><span class="fact-value">${esc(readableValue(fact.field, fact.value))}</span><span class="fact-source">${esc(fact.source || '')}</span></td><td>${!currentFacts ? button('Edit', 'edit-fact', `data-id="${esc(fact.id)}"`, 'small quiet') + button('Delete', 'delete', `data-kind="facts" data-id="${esc(fact.id)}"`, 'small quiet danger') : '—'}</td></tr>`).join('')}</tbody></table></div>${!facts.length ? `<p class="muted">${esc(t('No opening facts yet.'))}</p>` : ''}</section><section class="panel section-gap"><div class="panel-head"><h2>${esc(t('World rules'))}</h2>${button('Add rule', 'edit-rule', '', 'small')}</div>${project.rules.map((rule) => `<div class="event-row"><div class="event-body"><strong>${esc(rule.description)}</strong><small>${esc(entityName(rule.entity))} · ${esc(fieldName(rule.field))} ${esc(rule.operator)} ${esc(readableValue(rule.field, rule.value))}</small></div>${button('Edit', 'edit-rule', `data-id="${esc(rule.id)}"`, 'small quiet')}${button('Delete', 'delete', `data-kind="rules" data-id="${esc(rule.id)}"`, 'small quiet danger')}</div>`).join('') || `<p class="muted">${esc(t('No rules yet.'))}</p>`}</section>`
+      `<div class="empty">${esc(t(project.entities.length ? 'No matching entities. Clear the search or change the type filter.' : 'No entities yet. Add a character, location, item, or world.'))}</div>`
+    }</div><section class="panel section-gap"><div class="panel-head"><h2>${esc(t(currentFacts ? 'Current canon' : 'Opening facts'))}</h2>${button('Add opening fact', 'edit-fact', '', 'small')}</div><div class="table-scroll"><table class="facts"><thead><tr><th>${esc(t('Entity'))}</th><th>${esc(t('Attribute'))}</th><th>${esc(t('Value'))}</th><th>${esc(t('Actions'))}</th></tr></thead><tbody>${visibleFacts.map((fact) => `<tr><td>${esc(entityName(fact.entity))}</td><td>${esc(fieldName(fact.field))}${fact.locked ? ` <span class="badge">${esc(t('Locked'))}</span>` : ''}</td><td><span class="fact-value">${esc(readableValue(fact.field, fact.value))}</span><span class="fact-source">${esc(fact.source || '')}</span></td><td>${!currentFacts ? button('Edit', 'edit-fact', `data-id="${esc(fact.id)}"`, 'small quiet') + button('Delete', 'delete', `data-kind="facts" data-id="${esc(fact.id)}"`, 'small quiet danger') : '—'}</td></tr>`).join('')}</tbody></table></div>${!visibleFacts.length ? `<p class="muted">${esc(t(facts.length ? 'No matching facts.' : 'No opening facts yet.'))}</p>` : ''}</section><section class="panel section-gap"><div class="panel-head"><h2>${esc(t('World rules'))}</h2>${button('Add rule', 'edit-rule', '', 'small')}</div>${project.rules.map((rule) => `<div class="event-row"><div class="event-body"><strong>${esc(rule.description)}</strong><small>${esc(entityName(rule.entity))} · ${esc(fieldName(rule.field))} ${esc(rule.operator)} ${esc(readableValue(rule.field, rule.value))}</small></div>${button('Edit', 'edit-rule', `data-id="${esc(rule.id)}"`, 'small quiet')}${button('Delete', 'delete', `data-kind="rules" data-id="${esc(rule.id)}"`, 'small quiet danger')}</div>`).join('') || `<p class="muted">${esc(t('No rules yet.'))}</p>`}</section>`
   );
 }
 function scenesView(report) {
+  const needle = searchText(sceneQuery.trim());
+  const byId = new Map(project.scenes.map((scene) => [scene.id, scene]));
+  const scenes = report.scenes.filter((result) => {
+    const scene = byId.get(result.id);
+    return (
+      containsSearch(needle, scene.title, scene.summary) ||
+      scene.events.some((event) => recordMatches(event, needle))
+    );
+  });
   return (
     heading(
       'Keep the thread.',
@@ -380,14 +439,15 @@ function scenesView(report) {
       'Record what a scene claims, then record what actually changes. Events run from top to bottom.',
       button('Add scene', 'edit-scene', '', 'primary'),
     ) +
-    report.scenes
+    `<div class="filters">${searchControl('scene-search', 'Search scenes and events', sceneQuery)}</div><p class="note" role="status">${esc(t('Matching scenes'))}: ${scenes.length} / ${report.scenes.length}. ${esc(t('Matching scenes show every event in story order. Search does not change canon.'))}</p>` +
+    scenes
       .map((result) => {
-        const scene = project.scenes.find((scene) => scene.id === result.id);
+        const scene = byId.get(result.id);
         return `<section class="panel scene-panel" id="scene-${esc(scene.id)}"><div class="panel-head"><div><div class="eyebrow">${esc(t('Story order'))} ${scene.order}${scene.time !== undefined ? ` · ${scene.time} min` : ''}</div><h2>${esc(scene.title)}</h2></div>${badge(result)}</div>${scene.summary ? `<div class="prose">${esc(scene.summary)}</div>` : ''}<div class="actions">${button('Add event', 'edit-event', `data-scene="${esc(scene.id)}"`, 'small primary')}${button('Edit scene', 'edit-scene', `data-id="${esc(scene.id)}"`, 'small')}${button(scene.status === 'draft' ? 'Make canon' : 'Return to draft', 'toggle-canon', `data-id="${esc(scene.id)}" ${result.blocked && scene.status === 'draft' ? 'disabled' : ''}`, 'small quiet')}${button('Delete', 'delete', `data-kind="scenes" data-id="${esc(scene.id)}"`, 'small quiet danger')}</div><div class="scene-meta">${result.issues.length ? `${result.issues.filter((i) => i.severity === 'error').length} ${t('Error').toLowerCase()} · ${result.issues.filter((i) => i.severity === 'warning').length} ${t('Warning').toLowerCase()}` : t('No issues found in recorded facts.')}</div>${scene.events.map((event, index) => `<div class="event-row"><span class="badge ${event.kind === 'assert' ? 'draft' : ''}">${esc(t(event.kind === 'assert' ? 'Claim' : event.kind === 'set' ? 'Change' : 'Forget'))}</span><div class="event-body"><strong>${esc(entityName(event.entity))} · ${esc(fieldName(event.field))}</strong><span>${event.kind === 'unset' ? '→ ' + esc(t('Unknown')) : esc(readableValue(event.field, event.value))}</span>${event.reason ? `<small>${esc(event.reason)}</small>` : ''}</div><div class="event-tools">${button('Move up', 'move-event', `data-scene="${esc(scene.id)}" data-event="${esc(event.id)}" data-direction="-1" ${index === 0 ? 'disabled' : ''}`, 'small quiet')}${button('Move down', 'move-event', `data-scene="${esc(scene.id)}" data-event="${esc(event.id)}" data-direction="1" ${index === scene.events.length - 1 ? 'disabled' : ''}`, 'small quiet')}${button('Edit', 'edit-event', `data-scene="${esc(scene.id)}" data-event="${esc(event.id)}"`, 'small')}${button('Delete', 'delete-event', `data-scene="${esc(scene.id)}" data-event="${esc(event.id)}"`, 'small quiet danger')}</div></div>`).join('') || `<div class="empty">${esc(t('No events yet. Add a claim or a story change.'))}</div>`}</section>`;
       })
       .join('') +
-    (!report.scenes.length
-      ? `<div class="empty">${esc(t('No scenes yet. Add your first scene to begin.'))}</div>`
+    (!scenes.length
+      ? `<div class="empty">${esc(t(report.scenes.length ? 'No matching scenes. Try another search.' : 'No scenes yet. Add your first scene to begin.'))}</div>`
       : '')
   );
 }
@@ -488,18 +548,25 @@ function render() {
   });
   const bind = (id, callback, event = 'change') =>
     document.querySelector(`#${id}`)?.addEventListener(event, callback);
-  bind(
-    'search',
-    (event) => {
-      const position = event.target.selectionStart;
-      query = event.target.value;
+  const bindSearch = (id, setQuery) => {
+    const search = (event) => {
+      if (event.isComposing) return;
+      const { selectionStart, selectionEnd, selectionDirection, value } = event.target;
+      setQuery(value);
       render();
-      const input = document.querySelector('#search');
+      const input = document.getElementById(id);
       input.focus();
-      input.setSelectionRange(position, position);
-    },
-    'input',
-  );
+      input.setSelectionRange(selectionStart, selectionEnd, selectionDirection);
+    };
+    bind(id, search, 'input');
+    bind(id, search, 'compositionend');
+  };
+  bindSearch('search', (value) => {
+    query = value;
+  });
+  bindSearch('scene-search', (value) => {
+    sceneQuery = value;
+  });
   bind('entity-filter', (event) => {
     entityFilter = event.target.value;
     render();
@@ -559,6 +626,7 @@ function confirmReplace(next) {
       view = 'overview';
       contextCharacter = '';
       contextScene = '';
+      resetSearch();
       persist(next);
     },
     'Replace workspace',
@@ -882,6 +950,7 @@ function importForm() {
       const text = file?.size ? await file.text() : data.get('json');
       const next = parseProject(text);
       view = 'overview';
+      resetSearch();
       persist(next);
     },
     'Load backup',
@@ -897,6 +966,11 @@ app.addEventListener('click', async (event) => {
       view = target.dataset.view;
       render();
       document.querySelector('#main').focus();
+    } else if (action === 'clear-search') {
+      if (target.dataset.target === 'search') query = '';
+      else sceneQuery = '';
+      render();
+      document.getElementById(target.dataset.target).focus();
     } else if (action === 'edit-story')
       openDialog(
         'Edit story',
@@ -920,6 +994,7 @@ app.addEventListener('click', async (event) => {
           const next = createProject(data.get('title').trim());
           next.description = data.get('description');
           view = 'bible';
+          resetSearch();
           persist(next);
         },
       );
@@ -932,6 +1007,7 @@ app.addEventListener('click', async (event) => {
     else if (action === 'edit-event') eventForm(scene, eventId);
     else if (action === 'open-scene') {
       focusScene = id;
+      sceneQuery = '';
       view = 'scenes';
       render();
     } else if (action === 'toggle-canon')

@@ -2,6 +2,19 @@
 
 Notable user-facing changes are recorded here. Package versions follow semantic versioning. During `0.x`, interfaces may evolve; schema changes remain explicitly versioned.
 
+## [Unreleased]
+
+### Added
+
+- Story bible search across recorded values, attributes, provenance, and referenced entity names, respecting opening/current canon and entity type.
+- Scene search across titles, summaries, and events, preserving complete scenes, chronological order, and continuity diagnostics.
+- English and Indonesian search labels, result counts, no-match feedback, and clear controls, with keyboard focus and input-method composition support.
+
+### Fixed
+
+- Story bible fact rows now follow the search and type filters instead of showing unrelated facts.
+- A filtered list no longer tells writers that their existing entities are missing.
+
 ## [0.1.0] - 2026-09-16
 
 ### Added

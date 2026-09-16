@@ -9,8 +9,8 @@
 | Storage | Round trips, previous-save recovery, corrupt bytes, quota/permission failure, stale tabs                                                                        |
 | Schema  | Independent Ajv validation of draft 2020-12 and agreement on structural edge cases                                                                              |
 | Bundle  | JavaScript syntax, script CSP hash, absence of remote assets                                                                                                    |
-| DOM UI  | End-to-end form flow in jsdom, screen navigation, import rejection, persistence, fixes, text escaping, Indonesian labels                                        |
-| Browser | Playwright Chromium on desktop and a mobile viewport, example repair, downloads, reload, console errors, and horizontal overflow                                |
+| DOM UI  | End-to-end form flow in jsdom, screen navigation, import rejection, persistence, fixes, text escaping, Indonesian labels, fact/scene search and IME input       |
+| Browser | Playwright Chromium on desktop and a mobile viewport, example repair, downloads, reload, console errors, search/clear/navigation, and horizontal overflow       |
 
 Run Node/DOM suites with `npm ci --ignore-scripts && npm test`. `npm run check` checks JavaScript syntax, example validity, and generated-schema parity. `npm run test:coverage` reports runtime coverage; it is a diagnostic, not proof of correctness. Node's built-in runner supplies execution and coverage ([official documentation](https://nodejs.org/api/test.html)).
 
@@ -34,4 +34,6 @@ Record which checks ran, on what runtime/browser, and any blocked checks. Do not
 
 The local Node and DOM suites were run during initial development. The available cloud browser rejected local URLs and local HTML files under its URL security policy. No alternate browser surface was used to bypass that restriction. Real-browser and visual checks therefore remained pending at the initial repository handoff. They are configured as release gates in GitHub Actions; their result must be verified after repository access is connected.
 
-See the delivered verification report for the exact final local test count and package hashes. This document intentionally does not claim cross-browser certification or production-scale benchmarking.
+After GitHub access was connected, [CI run 35090657310](https://github.com/atheniaandara-dot/CanonLoom/actions/runs/35090657310) passed for the v0.1.0 source commit `9f84994`: Node 22 and 24 on Linux and Windows, plus the Chromium desktop/mobile suite. This supersedes the pending browser status at the initial handoff. Release assets and checksums are available on the [v0.1.0 release](https://github.com/atheniaandara-dot/CanonLoom/releases/tag/v0.1.0).
+
+For subsequent changes, use the linked checks on their pull requests and the main-branch CI history. This document does not claim cross-browser certification or production-scale benchmarking.

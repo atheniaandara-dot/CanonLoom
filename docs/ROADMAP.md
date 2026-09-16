@@ -2,10 +2,11 @@
 
 These are proposed directions, not shipped features or promised delivery dates.
 
+Fact and scene-event search is implemented on `main` for the next release; see the [changelog](../CHANGELOG.md).
+
 ## Next: make everyday editing safer
 
 - Named project selection and a recoverable version history.
-- Search across facts and scene events, not only entity notes.
 - Better explanations and guided fixes for invalid entity references.
 - More translated diagnostics and assistive-technology testing.
 - Measured performance budgets for long projects and incremental replay.

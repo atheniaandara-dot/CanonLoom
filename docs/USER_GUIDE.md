@@ -51,6 +51,18 @@ Draft scenes do not affect other scenes. Choose **Make canon** after errors are 
 
 The Story bible shows opening facts by default. Switch on **Current canon** to inspect the state after successful canon scenes. Use **AI context → Through scene** to export the state at an earlier point.
 
+## Find recorded details (unreleased)
+
+These search improvements are available when running the current source on `main`; the published v0.1.0 HTML has the earlier name-and-notes search.
+
+In **Story bible**, search a name, note, attribute, value, or source. For example, `blue waxed coat` finds the character wearing it, and `warehouse accident` finds facts citing that source. Referenced names work too: search `Soren Ash` to find his facts, relationships addressed to him, and items he holds. Use the type filter to narrow the results. Cards and the facts table use the same filters; the table includes matches beyond the five-fact card preview. A matching entity name or note shows all that entity's facts.
+
+Search uses **Opening canon** by default. Enable **Current canon** to search facts after successful canon scenes; changes in drafts or blocked scenes are not part of that state. World rules remain visible independently of the search.
+
+In **Scenes**, search titles, summaries, event subjects, attributes, values, sources, or reasons for changes. For example, `despite her fear` finds the crossing scene. Matching scenes retain every event in chronological story order, including drafts and blocked scenes. Opening a scene from the overview clears any scene search that would hide it.
+
+Search is literal, case-insensitive text matching with Unicode normalization. It does not interpret prose, use regular expressions, change saved data, or limit the continuity checker. **Clear search** restores the list while keeping the selected entity type. Search and type filters reset when you replace the workspace. English and Indonesian search controls are available.
+
 ## Backup and recovery
 
 Use **Export backup** regularly. The file includes all entities, opening facts, rules, scenes, statuses, summaries, and events. Keep it somewhere you control. Import accepts a file or pasted JSON and validates it before changing the workspace.
